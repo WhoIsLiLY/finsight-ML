@@ -53,6 +53,7 @@ def predict():
     #     "csv_path": csv_path,
     #     "local_csv_path": local_csv_path + "/data_saham.csv"
     # })
+    # ===== UNCOMMENT UNTUK DOWNLOAD DARI GCS =====
 
     # Load model and scaler based on the stock
     model = tf.keras.models.load_model(f"models/{stock}/model_saham.h5")
