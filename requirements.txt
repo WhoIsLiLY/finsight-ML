@@ -8,3 +8,4 @@ scikit-learn
 flask
 yfinance
 jupyter
+google-cloud-storage
