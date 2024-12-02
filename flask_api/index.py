@@ -6,7 +6,7 @@ import pandas as pd
 from utils import extended_forecast, parse_data_from_file
 
 app = Flask(__name__)
-WINDOW_SIZE = 4
+WINDOW_SIZE = 52  # 1 year
 
 @app.route('/predict', methods=['POST'])
 def predict():
