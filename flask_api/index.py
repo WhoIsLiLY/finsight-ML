@@ -12,12 +12,13 @@ WINDOW_SIZE = 4
 def predict():
     data = request.get_json()
     stock = str(data['stock']).upper()
+    steps = int(data['steps'])
     model = tf.keras.models.load_model(f"../stock_model/{stock}/model_saham.h5")
     scaler = joblib.load(f"../stock_model/{stock}/scaler.pkl")
     TIME, SERIES = parse_data_from_file(f"../stock_model/{stock}/data_saham.csv")
     SERIES = scaler.fit_transform(SERIES.reshape(-1, 1)).flatten()
     # return "MASUK"
-    predicted_values = extended_forecast(model, SERIES, WINDOW_SIZE, forecast_steps=1)
+    predicted_values = extended_forecast(model, SERIES, WINDOW_SIZE, forecast_steps=steps)
     predicted_actual = scaler.inverse_transform([predicted_values])
     return jsonify({
         'predictions': predicted_actual.flatten().tolist()
