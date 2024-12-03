@@ -1,8 +1,11 @@
 from flask import Flask, request, jsonify
+from recommendation_k_means import StockClusteringSystem
+from datetime import datetime, timedelta
 import tensorflow as tf
 import numpy as np
 import joblib
 import pandas as pd
+import json
 import os
 from utils import (
     extended_forecast,
@@ -18,7 +21,7 @@ WINDOW_SIZE = 52  # 1 year
 BUCKET_NAME = "finsight-ml-model"
 
 @app.route('/predict', methods=['POST'])
-def predict():
+def predict():  
     data = request.get_json()
     # Get stock and steps from request
     stock = str(data['stock']).upper()
@@ -74,6 +77,46 @@ def predict():
     return jsonify({
         'predictions': predicted_actual.flatten().tolist()
     })
+    
+@app.route('/riskprofile', method=['POST'])
+def riskProfile():
+    data = request.get_json()
+    
+    if not data or "riskProfile" not in data:
+        return jsonify({
+            "status": "failed",
+            "error": "Missing risk profile!"
+        }),400
+    
+    riskProfile = data["riskProfile"]
+    
+    tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'PG', '^GSPC', 'BTC-USD']
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=365 * 2)  
+    try: 
+        stock_system = StockClusteringSystem(tickers, start_date.strftime('%Y-%m-%d'),
+            end_date.strftime('%Y-%m-%d'))
+        
+        stock_system.fetch_data()
+        stock_system.create_feature_matrix()
+        stock_system.preprocess_features()
+        stock_system.perform_clustering(n=3)
+        
+        recommendations = stock_system.get_recommendations(riskProfile)
+        
+        return jsonify({
+            "status": "success",
+            "recommendations": recommendations
+        }),200
+        
+        
+        
+    except Exception as e:
+        return jsonify({
+            "status": "failed",
+            "error": str(e)
+        }),400
+    
 
 # Run Flask app
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1o_4PTp9_AudFtxRVTxmVAR1o0vVytvoa
 """
 
-!pip install ta
+#!pip install ta
 
 import yfinance as yf
 import pandas as pd
@@ -17,12 +17,12 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 import ta
 from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
-import seaborn as sns
+#import matplotlib.pyplot as plt
+#import seaborn as sns
 from sklearn.decomposition import PCA
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+#import plotly.express as px
+#import plotly.graph_objects as go
+#from plotly.subplots import make_subplots
 
 class StockClusteringSystem:
     def __init__(self, tickers, start_date, end_date):
@@ -179,9 +179,9 @@ class StockClusteringSystem:
             if risk_score[cluster] == max_score:
                 risk_mapping[cluster] = 'Aggressive'
             elif risk_score[cluster] == min_score:
-                risk_mapping[cluster] = 'Safe'
+                risk_mapping[cluster] = 'Conservative'
             else:
-                risk_mapping[cluster] = 'Semi-Aggressive'
+                risk_mapping[cluster] = 'Moderate'
 
         return risk_mapping
 
@@ -223,135 +223,135 @@ class StockVisualization:
         self.features = stock_system.features
         self.scaled_features = stock_system.scaled_features
 
-    def plot_cluster_2d(self):
-        """
-        Create 2D visualization of clusters using PCA
-        """
-        # Perform PCA for visualization
-        pca = PCA(n_components=2)
-        pca_result = pca.fit_transform(self.scaled_features)
+    # def plot_cluster_2d(self):
+    #     """
+    #     Create 2D visualization of clusters using PCA
+    #     """
+    #     # Perform PCA for visualization
+    #     pca = PCA(n_components=2)
+    #     pca_result = pca.fit_transform(self.scaled_features)
 
-        # Create DataFrame for plotting
-        plot_df = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
-        plot_df['Cluster'] = self.features['Cluster']
-        plot_df['Ticker'] = self.features.index
+    #     # Create DataFrame for plotting
+    #     plot_df = pd.DataFrame(data=pca_result, columns=['PC1', 'PC2'])
+    #     plot_df['Cluster'] = self.features['Cluster']
+    #     plot_df['Ticker'] = self.features.index
 
-        # Create interactive scatter plot
-        fig = px.scatter(plot_df, x='PC1', y='PC2',
-                        color='Cluster',
-                        text='Ticker',
-                        title='Stock Clusters Visualization (PCA)')
+    #     # Create interactive scatter plot
+    #     fig = px.scatter(plot_df, x='PC1', y='PC2',
+    #                     color='Cluster',
+    #                     text='Ticker',
+    #                     title='Stock Clusters Visualization (PCA)')
 
-        fig.update_traces(textposition='top center')
-        return fig
+    #     fig.update_traces(textposition='top center')
+    #     return fig
 
-    def plot_feature_importance(self):
-        """
-        Create heatmap of feature importance per cluster
-        """
-        # Calculate mean values for each feature by cluster
-        cluster_means = self.features.groupby('Cluster').mean()
+    # def plot_feature_importance(self):
+    #     """
+    #     Create heatmap of feature importance per cluster
+    #     """
+    #     # Calculate mean values for each feature by cluster
+    #     cluster_means = self.features.groupby('Cluster').mean()
 
-        # Create heatmap
-        plt.figure(figsize=(12, 8))
-        sns.heatmap(cluster_means.T, annot=True, cmap='coolwarm', center=0,
-                    fmt='.2f', linewidths=0.5)
-        plt.title('Feature Values by Cluster')
-        plt.ylabel('Features')
-        plt.xlabel('Cluster')
-        return plt
+    #     # Create heatmap
+    #     plt.figure(figsize=(12, 8))
+    #     sns.heatmap(cluster_means.T, annot=True, cmap='coolwarm', center=0,
+    #                 fmt='.2f', linewidths=0.5)
+    #     plt.title('Feature Values by Cluster')
+    #     plt.ylabel('Features')
+    #     plt.xlabel('Cluster')
+    #     return plt
 
-    def plot_risk_return_scatter(self):
-        """
-        Create risk-return scatter plot
-        """
-        fig = px.scatter(self.features,
-                        x='daily_return_std',  # Risk
-                        y='daily_return_mean',  # Return
-                        color='Cluster',
-                        text=self.features.index,
-                        title='Risk vs Return by Cluster',
-                        labels={'daily_return_std': 'Risk (Standard Deviation)',
-                               'daily_return_mean': 'Return (Mean Daily Return)'})
+    # def plot_risk_return_scatter(self):
+    #     """
+    #     Create risk-return scatter plot
+    #     """
+    #     fig = px.scatter(self.features,
+    #                     x='daily_return_std',  # Risk
+    #                     y='daily_return_mean',  # Return
+    #                     color='Cluster',
+    #                     text=self.features.index,
+    #                     title='Risk vs Return by Cluster',
+    #                     labels={'daily_return_std': 'Risk (Standard Deviation)',
+    #                            'daily_return_mean': 'Return (Mean Daily Return)'})
 
-        fig.update_traces(textposition='top center')
-        return fig
+    #     fig.update_traces(textposition='top center')
+    #     return fig
 
-    def plot_cluster_performance(self):
-        """
-        Plot historical performance by cluster
-        """
-        # Calculate daily returns for each stock
-        returns_by_cluster = {}
-        for ticker in self.stock_system.tickers:
-            cluster = self.features.loc[ticker, 'Cluster']
-            daily_returns = self.stock_system.data[ticker]['Close'].pct_change()
+    # def plot_cluster_performance(self):
+    #     """
+    #     Plot historical performance by cluster
+    #     """
+    #     # Calculate daily returns for each stock
+    #     returns_by_cluster = {}
+    #     for ticker in self.stock_system.tickers:
+    #         cluster = self.features.loc[ticker, 'Cluster']
+    #         daily_returns = self.stock_system.data[ticker]['Close'].pct_change()
 
-            if cluster not in returns_by_cluster:
-                returns_by_cluster[cluster] = []
-            returns_by_cluster[cluster].append(daily_returns)
+    #         if cluster not in returns_by_cluster:
+    #             returns_by_cluster[cluster] = []
+    #         returns_by_cluster[cluster].append(daily_returns)
 
-        # Calculate mean returns for each cluster
-        cluster_performance = {}
-        for cluster, returns_list in returns_by_cluster.items():
-            cluster_performance[cluster] = pd.concat(returns_list, axis=1).mean(axis=1)
+    #     # Calculate mean returns for each cluster
+    #     cluster_performance = {}
+    #     for cluster, returns_list in returns_by_cluster.items():
+    #         cluster_performance[cluster] = pd.concat(returns_list, axis=1).mean(axis=1)
 
-        # Create cumulative returns plot
-        fig = go.Figure()
+    #     # Create cumulative returns plot
+    #     fig = go.Figure()
 
-        for cluster, returns in cluster_performance.items():
-            cumulative_returns = (1 + returns).cumprod()
-            fig.add_trace(go.Scatter(x=cumulative_returns.index,
-                                   y=cumulative_returns.values,
-                                   name=f'Cluster {cluster}'))
+    #     for cluster, returns in cluster_performance.items():
+    #         cumulative_returns = (1 + returns).cumprod()
+    #         fig.add_trace(go.Scatter(x=cumulative_returns.index,
+    #                                y=cumulative_returns.values,
+    #                                name=f'Cluster {cluster}'))
 
-        fig.update_layout(title='Cumulative Returns by Cluster',
-                         xaxis_title='Date',
-                         yaxis_title='Cumulative Return')
-        return fig
+    #     fig.update_layout(title='Cumulative Returns by Cluster',
+    #                      xaxis_title='Date',
+    #                      yaxis_title='Cumulative Return')
+    #     return fig
 
-    def plot_cluster_metrics(self):
-        """
-        Plot key metrics distribution by cluster
-        """
-        metrics = ['daily_return_mean', 'daily_return_std', 'beta', 'pe_ratio']
-        fig = make_subplots(rows=2, cols=2, subplot_titles=metrics)
+    # def plot_cluster_metrics(self):
+    #     """
+    #     Plot key metrics distribution by cluster
+    #     """
+    #     metrics = ['daily_return_mean', 'daily_return_std', 'beta', 'pe_ratio']
+    #     fig = make_subplots(rows=2, cols=2, subplot_titles=metrics)
 
-        for i, metric in enumerate(metrics, 1):
-            row = (i-1) // 2 + 1
-            col = (i-1) % 2 + 1
+    #     for i, metric in enumerate(metrics, 1):
+    #         row = (i-1) // 2 + 1
+    #         col = (i-1) % 2 + 1
 
-            fig.add_trace(
-                go.Box(y=self.features[metric],
-                      x=self.features['Cluster'].astype(str),
-                      name=metric),
-                row=row, col=col
-            )
+    #         fig.add_trace(
+    #             go.Box(y=self.features[metric],
+    #                   x=self.features['Cluster'].astype(str),
+    #                   name=metric),
+    #             row=row, col=col
+    #         )
 
-        fig.update_layout(height=800, title_text="Key Metrics Distribution by Cluster")
-        return fig
+    #     fig.update_layout(height=800, title_text="Key Metrics Distribution by Cluster")
+    #     return fig
 
-def visualize_results(stock_system):
-    """
-    Create and display all visualizations
-    """
-    viz = StockVisualization(stock_system)
+# def visualize_results(stock_system):
+#     """
+#     Create and display all visualizations
+#     """
+#     viz = StockVisualization(stock_system)
 
-    # Generate all plots
-    cluster_2d = viz.plot_cluster_2d()
-    risk_return = viz.plot_risk_return_scatter()
-    performance = viz.plot_cluster_performance()
-    metrics = viz.plot_cluster_metrics()
+#     # Generate all plots
+#     cluster_2d = viz.plot_cluster_2d()
+#     risk_return = viz.plot_risk_return_scatter()
+#     performance = viz.plot_cluster_performance()
+#     metrics = viz.plot_cluster_metrics()
 
-    # Display plots
-    cluster_2d.show()
-    risk_return.show()
-    performance.show()
-    metrics.show()
+#     # Display plots
+#     cluster_2d.show()
+#     risk_return.show()
+#     performance.show()
+#     metrics.show()
 
-    # Feature importance heatmap (using matplotlib)
-    feature_importance = viz.plot_feature_importance()
-    plt.show()
+#     # Feature importance heatmap (using matplotlib)
+#     feature_importance = viz.plot_feature_importance()
+#     plt.show()
 
 # [
 #     'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'PG',
@@ -388,40 +388,40 @@ def visualize_results(stock_system):
 # ]
 
 # Example usage
-tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'PG', '^GSPC', 'BTC-USD']
-end_date = datetime.now()
-start_date = end_date - timedelta(days=365*2)  # 2 years of data
+# tickers = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'PG', '^GSPC', 'BTC-USD']
+# end_date = datetime.now()
+# start_date = end_date - timedelta(days=365*2)  # 2 years of data
 
-# Initialize and run the system
-stock_system = StockClusteringSystem(tickers, start_date.strftime('%Y-%m-%d'),
-                                    end_date.strftime('%Y-%m-%d'))
+# # Initialize and run the system
+# stock_system = StockClusteringSystem(tickers, start_date.strftime('%Y-%m-%d'),
+#                                     end_date.strftime('%Y-%m-%d'))
 
-print("Fetching data...")
-stock_system.fetch_data()
+# print("Fetching data...")
+# stock_system.fetch_data()
 
-print("Creating feature matrix...")
-stock_system.create_feature_matrix()
+# print("Creating feature matrix...")
+# stock_system.create_feature_matrix()
 
-print("Preprocessing features...")
-stock_system.preprocess_features()
+# print("Preprocessing features...")
+# stock_system.preprocess_features()
 
-print("Performing clustering...")
-stock_system.perform_clustering(n_clusters=3)
+# print("Performing clustering...")
+# stock_system.perform_clustering(n_clusters=3)
 
-# Get cluster characteristics
-risk_mapping = stock_system.get_cluster_characteristics()
-print("\nCluster Risk Mappings:")
-print(risk_mapping)
+# # Get cluster characteristics
+# risk_mapping = stock_system.get_cluster_characteristics()
+# print("\nCluster Risk Mappings:")
+# print(risk_mapping)
 
-# Get recommendations for each risk level
-risk_levels = ['Safe', 'Semi-Aggressive', 'Aggressive']
-for risk in risk_levels:
-    recommendations = stock_system.get_recommendations(risk)
-    print(f"\n{risk} stock recommendations:")
-    print(recommendations)
+# # Get recommendations for each risk level
+# risk_levels = ['Conservative', 'Moderate', 'Aggressive']
+# for risk in risk_levels:
+#     recommendations = stock_system.get_recommendations(risk)
+#     print(f"\n{risk} stock recommendations:")
+#     print(recommendations)
 
-print("\nCreating visualizations...")
-visualize_results(stock_system)
+# print("\nCreating visualizations...")
+#visualize_results(stock_system)
 
 # def plot_cluster_3d(self):
 #     """
