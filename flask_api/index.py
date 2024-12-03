@@ -78,7 +78,7 @@ def predict():
         'predictions': predicted_actual.flatten().tolist()
     })
     
-@app.route('/riskprofile', method=['POST'])
+@app.route('/riskprofile', methods=['POST'])
 def riskProfile():
     data = request.get_json()
     
@@ -100,7 +100,7 @@ def riskProfile():
         stock_system.fetch_data()
         stock_system.create_feature_matrix()
         stock_system.preprocess_features()
-        stock_system.perform_clustering(n=3)
+        stock_system.perform_clustering(n_clusters=3)
         
         recommendations = stock_system.get_recommendations(riskProfile)
         
