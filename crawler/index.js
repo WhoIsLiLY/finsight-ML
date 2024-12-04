@@ -223,6 +223,12 @@ const processNewsPage = async (newsUrl) => {
     const response = await axios.get(newsUrl);
     const $ = cheerio.load(response.data);
 
+    const convertToNanoseconds = (dateString) => {
+      const date = new Date(dateString); // Parse ISO 8601 to Date object
+      const milliseconds = date.getTime(); // Get timestamp in milliseconds
+      return BigInt(milliseconds) * 1_000_000n; // Convert to nanoseconds
+    };
+
     const code = $('div.name').text().trim();
     const title = $('h1.cover-title').text().trim();
     const content = $('p').map((i, el) => $(el).text().trim()).get().join(' ');
@@ -230,6 +236,7 @@ const processNewsPage = async (newsUrl) => {
     const percentageChange = $('fin-streamer.percentChange').text().trim();
     const dateAttr = $('time.byline-attr-meta-time').attr('datetime');
     const date = dateAttr ? new Date(dateAttr) : null;
+    const nanoSeconds = convertToNanoseconds(date);
 
     return {
       code,
@@ -237,6 +244,7 @@ const processNewsPage = async (newsUrl) => {
       content,
       publisherAuthor,
       percentageChange,
+      nanoSeconds,
       dateAttr,
       dateText: $('time.byline-attr-meta-time').text(),
       timeAgo: date ? formatDistanceToNow(date, { addSuffix: true }) : 'Unknown',
@@ -283,9 +291,15 @@ app.get('/crawl', async (req, res) => {
         allNewsContent[key] = allNewsContent[key].filter(item => item.code && item.code.trim() !== '');
       }
     }
+    // Convert BigInt to string for serialization
+    const response = JSON.parse(
+      JSON.stringify(allNewsContent, (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value
+      )
+    );
     res.json({
       message: 'Crawling and news extraction completed!',
-      allNewsContent,
+      allNewsContent: response,
     });
   } catch (error) {
     console.error('Error during crawling:', error.message);
