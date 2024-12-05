@@ -2,3 +2,4 @@
 venv
 flask_api/__pycache__
 flask_api/credential.json
+crawler/node_modules

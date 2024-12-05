@@ -9,20 +9,31 @@ def extended_forecast(model, series, window_size, forecast_steps):
     Generates a forecast using your trained model up to a specified number of future steps.
     """
     # Initialize forecast results with the original series to begin prediction
-    forecast = list(series[-window_size:])  # Start from the last known window
+    # forecast = list(series[-window_size:])  # Start from the last known window
+    #
+    # for _ in range(forecast_steps):
+    #     # Convert forecast list to tensor
+    #     input_series = np.array(forecast[-window_size:]).reshape(1, -1)  # Shape (1, window_size)
+    #
+    #     # Predict the next step
+    #     next_step = model.predict(input_series)[0][0]  # Get the predicted value
+    #
+    #     # Append the next step to the forecast
+    #     forecast.append(next_step)
+    #
+    # # Return only the future forecasted steps
+    # return np.array(forecast[-forecast_steps:])
+    WEEKS_IN_YEARS = 52 * forecast_steps
+    future_forecast = []
+    last_window = series[-window_size:]
 
-    for _ in range(forecast_steps):
-        # Convert forecast list to tensor
-        input_series = np.array(forecast[-window_size:]).reshape(1, -1)  # Shape (1, window_size)
+    for _ in range(WEEKS_IN_YEARS):
+        prediction = model.predict(last_window[np.newaxis, :])
+        future_forecast.append(prediction.squeeze())
+        last_window = np.roll(last_window, -1)
+        last_window[-1] = prediction.squeeze()
 
-        # Predict the next step
-        next_step = model.predict(input_series)[0][0]  # Get the predicted value
-
-        # Append the next step to the forecast
-        forecast.append(next_step)
-
-    # Return only the future forecasted steps
-    return np.array(forecast[-forecast_steps:])
+    return np.array(future_forecast)
 
 def parse_data_from_file(filename):
   # Load the file, skipping the first three rows to remove unnecessary headers
