@@ -17,8 +17,9 @@ from utils import (
 )
 
 app = Flask(__name__)
-WINDOW_SIZE = 52  # 1 year
+WINDOW_SIZE = 4  # Menyesuaikan dengan jenis saham
 BUCKET_NAME = "finsight-ml-model"
+DATA_FROM = 2024
 
 @app.route('/predict', methods=['POST'])
 def predict():  
@@ -26,6 +27,15 @@ def predict():
     # Get stock and steps from request
     stock = str(data['stock']).upper()
     steps = int(data['steps'])
+
+    # Current Year
+    current_year = int(datetime.now().year)
+    '''
+    Kalo request dari tahun 2025 dengan steps 5, maka akan prediksi s/d 2023
+    Karena data sampai dengan tahun 2024, maka kita harus menambahkan 1 (2025 - 2024)
+    '''
+    gap = current_year - DATA_FROM
+    steps += gap
 
     # ===== UNCOMMENT UNTUK DOWNLOAD DARI GCS =====
     # model_path = f"stock_model/{stock}/model_saham.h5"
@@ -75,7 +85,10 @@ def predict():
 
     # Return json (array)
     return jsonify({
-        'predictions': predicted_actual.flatten().tolist()
+        'predictions': predicted_actual.flatten().tolist(),
+        'year_from': str(DATA_FROM),
+        'year_to': str(DATA_FROM + steps),
+        'prediction': predicted_actual.flatten().tolist()[-1]
     })
     
 @app.route('/riskprofile', methods=['POST'])
