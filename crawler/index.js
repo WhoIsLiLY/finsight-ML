@@ -9,10 +9,7 @@ const chrome = require('selenium-webdriver/chrome');
 const app = express();
 const port = 3000;
 
-const stockCodes = [
-  'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'TSLA', 'NVDA', 'JPM', 'JNJ', 'PG',
-  '^GSPC', 'BTC-USD', 'GC=F', 'XOM', 'CVX', 'PFE', 'MRNA'
-];
+const stockCodes = ["^GSPC", "ANTM.JK", "ASII.JK"];
 
 const processNewsPage = async (newsUrl, imgUrl) => {
   try {
@@ -25,14 +22,15 @@ const processNewsPage = async (newsUrl, imgUrl) => {
       return BigInt(milliseconds) * 1_000_000n; // Convert to nanoseconds
     };
 
-    const code = $('div.name').text().trim();
-    const title = $('h1.cover-title').text().trim();
-    const content = $('p').map((i, el) => $(el).text().trim()).get().join(' ');
-    const publisherAuthor = $('div.byline-attr-author').text().trim();
-    const percentageChange = $('fin-streamer.percentChange').text().trim();
-    const dateAttr = $('time.byline-attr-meta-time').attr('datetime');
+    const code = $('div.name').text().trim() || null;
+    const title = $('h1.cover-title').text().trim() || null;
+    const content = $('p').map((i, el) => $(el).text().trim()).get().join(' ') || null;
+    const publisherAuthor = $('div.byline-attr-author').text().trim() || null;
+    const percentageChange = $('fin-streamer.percentChange').text().trim() || null;
+    const dateAttr = $('time.byline-attr-meta-time').attr('datetime') || null;
     const date = dateAttr ? new Date(dateAttr) : null;
-    const nanoSeconds = convertToNanoseconds(date);
+    const nanoSeconds = date ? convertToNanoseconds(date) : null;
+    console.log("success");
     return {
       code,
       title,
@@ -41,15 +39,30 @@ const processNewsPage = async (newsUrl, imgUrl) => {
       percentageChange,
       nanoSeconds,
       dateAttr,
-      dateText: $('time.byline-attr-meta-time').text(),
+      dateText: $('time.byline-attr-meta-time').text() || null,
       timeAgo: date ? formatDistanceToNow(date, { addSuffix: true }) : 'Unknown',
-      imgUrl
+      imgUrl: imgUrl || null
     };
   } catch (error) {
+    // Log the error for debugging purposes
     console.error('Error processing news page:', error.message);
-    return null;
+
+    // Return a default object with null or fallback values
+    return {
+      code: null,
+      title: null,
+      content: null,
+      publisherAuthor: null,
+      percentageChange: null,
+      nanoSeconds: null,
+      dateAttr: null,
+      dateText: null,
+      timeAgo: 'Unknown',
+      imgUrl: imgUrl || null
+    };
   }
 };
+
 
 app.get('/', async (req, res) => {
   try {
@@ -65,7 +78,7 @@ app.get('/', async (req, res) => {
         $('div.stream-item.yf-186c5b2 a.subtle-link').each((index, element) => {
           const href = $(element).attr('href');
           const imgUrl = $(element).closest('div.stream-item').find('img.tw-bg-opacity-25').attr('src');
-          console.log("image: " + imgUrl);
+          //console.log("image: " + imgUrl);
           if (href) {
             const fullUrl = href.startsWith('http') ? href : `https://finance.yahoo.com${href}`;
             uniqueNewsUrls.set(fullUrl, imgUrl); // Simpan fullUrl sebagai key dan imgUrl sebagai value
@@ -84,6 +97,7 @@ app.get('/', async (req, res) => {
         allNewsContent[stockCode] = newsContents.filter(Boolean);
       })
     );
+    console.log("SUCCESSS");
     for (const key in allNewsContent) {
       if (Array.isArray(allNewsContent[key])) {
         // Filter out objects with empty "code"
@@ -108,29 +122,15 @@ app.get('/', async (req, res) => {
 
 // Endpoint untuk mengecek status URL
 app.get('/test', async (req, res) => {
-  const testUrl = req.query.url; // Ambil URL dari parameter query
-
-  if (!testUrl) {
-    return res.status(400).send('URL parameter is required');
+  try{
+    const url = encodeURI("https://finance.yahoo.com/quote/BTC-USD/");
+    const response = await axios.get(url);
+    if(response) res.status(200).send('Success');
+  }catch (error) {
+    console.error("ga nemu");
+    return null;
   }
-
-  try {
-    // Mengirimkan request untuk mengecek apakah URL dapat dijangkau
-    const response = await axios.get(testUrl);
-
-    // Jika request berhasil, kembalikan status code dan data
-    res.json({
-      message: 'URL is reachable!',
-      statusCode: response.status,
-      statusText: response.statusText,
-    });
-  } catch (error) {
-    // Jika gagal, kembalikan error
-    res.status(500).json({
-      message: 'Error accessing URL',
-      error: error.message,
-    });
-  }
+  
 });
 
 app.listen(port, () => {
