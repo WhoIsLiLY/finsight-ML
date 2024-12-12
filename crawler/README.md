@@ -24,13 +24,13 @@ This project is a news crawler that extracts news articles from the Yahoo Financ
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/news-crawler.git
+   git clone https://github.com/WhoIsLiLY/finsight-ML
    ```
 
 2. Install dependencies:
 
    ```bash
-   cd news-crawler
+   cd crawler
    npm install
    ```
 
