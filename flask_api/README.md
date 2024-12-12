@@ -24,7 +24,7 @@ python3 index.py
 
 ## Usage
 This project provides 2 __endpoints__:
-- __GET /predict__: Give stock prices prediction.
+- __GET /predict__: Give stock prices prediction and percentage changes.
 - __GET /riskprofile__: Give some stocks recommendation based on profile risk.
 
 ## File Structure
